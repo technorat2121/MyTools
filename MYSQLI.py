@@ -4,16 +4,52 @@ from urllib.parse import urlparse, parse_qsl, urlunparse, urlencode
 
 # Define potential SQLi parameters by file type
 sqli_parameters = {
-    '.php': ['category', 'id', 'article_id', 'username', 'password', 'q', 'post_id', 'thread_id', 'user_id'],
-    '.asp': ['catid', 'id', 'newsid', 'username', 'password', 'q', 'postid', 'threadid', 'userid'],
-    '.aspx': ['catid', 'id', 'newsid', 'username', 'password', 'q', 'postid', 'threadid', 'userid'],
-    '.cfm': ['catid', 'id', 'newsid', 'username', 'password', 'q', 'postid', 'threadid', 'userid'],
-    '.jsp': ['catid', 'id', 'newsid', 'username', 'password', 'q', 'postid', 'threadid', 'userid']
+    '.php': [
+        'category', 'id', 'article_id', 'username', 'password', 'q',
+        'post_id', 'thread_id', 'user_id', 'page', 'lang', 'search',
+        'sort', 'order', 'dir', 'type', 'date', 'name', 'id'
+    ],
+    '.asp': [
+        'catid', 'id', 'newsid', 'username', 'password', 'q',
+        'postid', 'threadid', 'userid', 'item', 'prodid', 'key',
+        'sort', 'order', 'date', 'action', 'page'
+    ],
+    '.aspx': [
+        'catid', 'id', 'newsid', 'username', 'password', 'q',
+        'postid', 'threadid', 'userid', 'product_id', 'view', 'sessionid',
+        'sort', 'order', 'action', 'page', 'type'
+    ],
+    '.cfm': [
+        'catid', 'id', 'newsid', 'username', 'password', 'q',
+        'postid', 'threadid', 'userid', 'item', 'product_id', 'view',
+        'sort', 'order', 'action', 'page', 'categoryid'
+    ],
+    '.jsp': [
+        'catid', 'id', 'newsid', 'username', 'password', 'q',
+        'postid', 'threadid', 'userid', 'item', 'product_id', 'action',
+        'sort', 'order', 'view', 'page', 'session'
+    ],
+    '.htm': [
+        'id', 'page', 'view', 'search', 'query', 'lang',
+        'category', 'type', 'sort', 'order', 'date', 'filter'
+    ],
+    '.pl': [
+        'id', 'page', 'view', 'search', 'query', 'lang',
+        'category', 'type', 'sort', 'order', 'date', 'filter'
+    ],
+    '.py': [
+        'id', 'page', 'view', 'search', 'query', 'lang',
+        'category', 'type', 'sort', 'order', 'date', 'filter'
+    ],
+    '.cgi': [
+        'id', 'page', 'view', 'search', 'query', 'lang',
+        'category', 'type', 'sort', 'order', 'date', 'filter'
+    ]
 }
 
 # Function to extract file extension from URL
 def get_file_extension(url):
-    match = re.search(r'\.(php|asp|aspx|cfm|jsp)', url)
+    match = re.search(r'\.(php|asp|aspx|cfm|jsp|html|htm|pl|py|cgi)', url)
     return match.group(0) if match else None
 
 # Function to check for potential SQLi parameters in URL
@@ -42,7 +78,7 @@ def deduplicate_urls(urls):
         sorted_query = sorted(parse_qsl(parsed_url.query))
         normalized_query = urlencode(sorted_query)
         normalized_url = urlunparse(parsed_url._replace(query=normalized_query))
-        
+
         if normalized_url not in seen:
             seen.add(normalized_url)
             unique_urls.append(normalized_url)
@@ -75,4 +111,3 @@ with open(args.output, 'w') as output_file:
             print("-" * 50)
             # Write the URL only to the output file
             output_file.write(url + '\n')
-
