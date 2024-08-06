@@ -2,31 +2,21 @@ import re
 import argparse
 from urllib.parse import urlparse, parse_qsl, urlunparse, urlencode
 
-# Define potential LFI parameters by file type
-lfi_parameters = {
-    '.php': ['file', 'page', 'include', 'view', 'template', 'config', 'lib'],
-    '.asp': ['file', 'page', 'include', 'view', 'template', 'config', 'lib'],
-    '.aspx': ['file', 'page', 'include', 'view', 'template', 'config', 'lib'],
-    '.cfm': ['file', 'page', 'include', 'view', 'template', 'config', 'lib'],
-    '.jsp': ['file', 'page', 'include', 'view', 'template', 'config', 'lib']
-}
+# Define the most vulnerable LFI parameters
+lfi_parameters = [
+    'file', 'document', 'folder', 'root', 'path', 'pg', 'style', 'pdf',
+    'template', 'php_path', 'lang', 'language', 'load', 'view'
+]
 
-# Function to extract file extension from URL
-def get_file_extension(url):
-    match = re.search(r'\.(php|asp|aspx|cfm|jsp)', url)
-    return match.group(0) if match else None
+# Optionally, add the most commonly targeted file extensions
+lfi_extensions = ['.php', '.asp', '.aspx', '.jsp', '.html', '.htm']
 
 # Function to check for potential LFI parameters in URL
 def find_lfi_parameters(url):
-    file_extension = get_file_extension(url)
-    if not file_extension:
-        return None
-
-    potential_params = lfi_parameters.get(file_extension, [])
     found_params = []
 
     # Check if URL contains any of the potential parameters
-    for param in potential_params:
+    for param in lfi_parameters:
         if re.search(r'[?&]' + re.escape(param) + r'=', url):
             found_params.append(param)
 
@@ -42,7 +32,7 @@ def deduplicate_urls(urls):
         sorted_query = sorted(parse_qsl(parsed_url.query))
         normalized_query = urlencode(sorted_query)
         normalized_url = urlunparse(parsed_url._replace(query=normalized_query))
-        
+
         if normalized_url not in seen:
             seen.add(normalized_url)
             unique_urls.append(normalized_url)
@@ -74,6 +64,4 @@ with open(args.output, 'w') as output_file:
             print(f"Potential LFI Parameters: {', '.join(found)}")
             print("-" * 50)
             # Write the URL only to the output file
-
             output_file.write(url + '\n')
-
